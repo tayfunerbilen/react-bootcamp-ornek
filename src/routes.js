@@ -1,49 +1,84 @@
-import { lazy, Suspense } from "react";
+import PrivateRoute from "./components/PrivateRoute";
+import Home from "./pages/Home";
+import HomeLayout from "./pages/HomeLayout";
+import Login from "./pages/auth/Login"
+import Register from "./pages/auth/Register"
+import AuthLayout from "./pages/auth/AuthLayout"
 
-import Loader from "./components/Loader";
-const Home = lazy(() => import("./pages/Home"))
-const Contact = lazy(() => import("./pages/Contact"));
-const BlogLayout = lazy(() => import("./pages/blog"));
-const Blog = lazy(() => import("./pages/blog/Blog"));
-const BlogDetail = lazy(() => import("./pages/blog/Detail"));
-const Blog404 = lazy(() => import("./pages/blog/Blog404"));
-const Page404 = lazy(() => import("./pages/Page404"));
+import Contact from "./pages/Contact";
+import BlogLayout from "./pages/blog";
+import Blog from "./pages/blog/Blog";
+import BlogDetail from "./pages/blog/Detail";
+import Blog404 from "./pages/blog/Blog404";
+import Page404 from "./pages/Page404";
 
-const routes = [
+let routes = [
 	{
 		path: '/',
 		name: 'index',
-		element: <Suspense fallback={<Loader />}><Home /></Suspense>
+		auth: true,
+		element: <HomeLayout />,
+		children: [
+			{
+				index: true,
+				element: <Home/>,
+			}
+		]
 	},
 	{
-		path: '/contact',
-		name: 'contact',
-		element: <Suspense fallback={<Loader />}><Contact /></Suspense>
+		path: '/auth',
+		name: 'auth',
+		element: <AuthLayout />,
+		children: [
+			{
+				path: 'login',
+				name: 'login',
+				element: <Login/>
+			},
+			{
+				path: 'register',
+				name: 'register',
+				element: <Register />
+			},
+		]
 	},
 	{
 		path: '/bloglar',
 		name: 'blog',
-		element: <Suspense fallback={<Loader />}><BlogLayout /></Suspense>,
+		element: <BlogLayout/>,
 		children: [
 			{
 				index: true,
-				element: <Suspense fallback={<Loader />}><Blog /></Suspense>
+				element: <Blog/>
 			},
 			{
 				name: 'detail',
+				auth: true,
 				path: 'konular/:postId',
-				element: <Suspense fallback={<Loader />}><BlogDetail /></Suspense>
+				element: <BlogDetail/>
 			},
 			{
 				path: '*',
-				element: <Suspense fallback={<Loader />}><Blog404 /></Suspense>
+				element: <Blog404/>
 			}
 		]
 	},
 	{
 		path: '*',
-		element: <Suspense fallback={<Loader />}><Page404 /></Suspense>
+		element: <Page404/>
 	}
 ]
+
+const mapAuth = routes => routes.map(route => {
+	if (route?.auth) {
+		route.element = <PrivateRoute>{route.element}</PrivateRoute>
+	}
+	if (route?.children) {
+		route.children = mapAuth(route.children)
+	}
+	return route
+})
+
+routes = mapAuth(routes)
 
 export default routes

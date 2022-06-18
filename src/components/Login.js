@@ -1,20 +1,29 @@
-import { useAuth } from "../context";
 import {useState} from "react";
 import users from "../data/users.json"
+import { useLocation, useNavigate } from "react-router-dom";
+import {useSelector, useDispatch} from "react-redux";
+import { login } from "../stores/auth";
 
 export default function Login() {
+
+	const dispatch = useDispatch()
+	const location = useLocation()
+	const navigate = useNavigate()
 
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
 	const [showLoginBox, setShowLoginBox] = useState(false)
-	const { user, setUser } = useAuth()
+	const { user } = useSelector(state => state.auth)
 
 	const submitHandle = e => {
 		e.preventDefault()
 
 		const currentUser = users.find(user => user.username === username && password === password)
 		if ( currentUser ) {
-			setUser(currentUser)
+			dispatch(login(currentUser))
+			navigate(location.state.return_url, {
+				replace: true
+			})
 		} else {
 			alert('Kullanıcı bulunamadı!')
 		}
